@@ -56,8 +56,8 @@ setup(
     install_requires=[
         "docopt==.0.6.1",
         "infi.docopt_completion==0.2.1",
-        "jingen==0.0.1"
-        "docker-py"
+        "jingen==0.0.2",
+        "docker-py==0.4.0"
     ],
     tests_require=['nose', 'tox'],
     cmdclass={'test': Tox},

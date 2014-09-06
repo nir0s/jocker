@@ -5,7 +5,7 @@ import logging.config
 import os
 import sys
 import datetime
-from jingen import TemplateHandler
+from jingen.jingen import TemplateHandler
 import docker
 
 DEFAULT_BASE_LOGGING_LEVEL = logging.INFO
@@ -114,24 +114,40 @@ def run(varsfile=None, dockerfile=None, output_file=None, build=False,
     vars_source = varsfile if varsfile else DEFAULT_VARSFILE
     output_file = output_file if output_file else DEFAULT_OUTPUT_PATH
     templates_dir = os.path.dirname(template_file)
+    template_file = os.path.basename(template_file)
 
+    print '****************'
+    print template_file
+    print vars_source
+    print output_file
+    print templates_dir
+    print '****************'
     i = TemplateHandler(
         template_file=template_file,
         vars_source=vars_source,
         output_file=output_file,
         templates_dir=templates_dir,
-        make_file=dryrun,
+        make_file=not dryrun,
         verbose=verbose)
-    i.generate()
+    output = i.generate()
 
+    if dryrun and build:
+        lgr.error('dryrun is on. cannot build.')
+        raise JockerError('dryrun is on. cannot build')
     if dryrun:
+        lgr.info('Potential Dockerfile Output is: \n{0}'.format(output))
         return
     if build:
         c = docker.Client(base_url='unix://var/run/docker.sock',
                           version='1.12', timeout=10)
-        c.build(path=output_file, tag=None, quiet=False, fileobj=None,
-                nocache=False, rm=False, stream=False, timeout=None,
-                custom_context=False, encoding=None)
+        build_file = os.path.dirname(os.path.abspath(output_file))
+        lgr.debug('building docker image from file: {0}'.format(build_file))
+        x = c.build(path=build_file, tag='nir0s/jocker:test', quiet=False,
+                    fileobj=None, nocache=False, rm=False, stream=True,
+                    timeout=None, custom_context=False, encoding=None)
+        print '*****************'
+        print dir(x)
+        print '*****************'
 
     # _verify_docker_context(ctx['context'])
     #         client = docker.Client(base_url='unix://var/run/docker.sock',

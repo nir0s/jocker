@@ -2,4 +2,4 @@ FROM {{ image.repository }}:{{ image.tag }}
 MAINTAINER {{ maintainer.name }}, {{ maintainer.email }}
 
 RUN apt-get update
-RUN apt-get install -y {{ dependencies }}
+RUN apt-get install -y {% for dep in dependencies %}{{ dep }} {% endfor %}
