@@ -3,7 +3,7 @@
 VARS = {
     "maintainer": {
         "name": "nir0s",
-        "email": "nir36g@gmail.com",
+        "email": "nir36g@gmail.com"
     },
     "image": {
         "repository": "ubuntu",

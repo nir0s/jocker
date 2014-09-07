@@ -12,18 +12,18 @@ Options:
     -o --outputfile=<path>      Path to output Dockerfile
     -b --build                  Whether to build or not
     -d --dryrun                 Whether to actually generate.. or just dryrun
-    -v --verbose                a LOT of output
+    -v --verbose                a LOT of output (Note: should be used carefully..)
     --version                   Display current version of jocker and exit
 
 """
 
 from __future__ import absolute_import
 from docopt import docopt
-from jocker.jocker import init_logger
+from jocker.jocker import init_jocker_logger
 from jocker.jocker import _set_global_verbosity_level
 from jocker.jocker import run
 
-lgr = init_logger()
+lgr = init_jocker_logger()
 
 
 def ver_check():

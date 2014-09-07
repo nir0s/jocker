@@ -45,7 +45,7 @@ setup(
     author_email='nir36g@gmail.com',
     license='LICENSE',
     platforms='All',
-    description='Jinja2 Based Dockerfile handler',
+    description='Jinja2 Based Dockerfile and Image Generator',
     long_description=read('README.rst'),
     packages=['jocker'],
     entry_points={
@@ -56,7 +56,7 @@ setup(
     install_requires=[
         "docopt==.0.6.1",
         "infi.docopt_completion==0.2.1",
-        "jingen==0.0.2",
+        "jingen==0.0.4",
         "docker-py==0.4.0"
     ],
     tests_require=['nose', 'tox'],

@@ -13,7 +13,7 @@ LOGGER = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "file",
             "level": "DEBUG",
-            "filename": "feeder.log",
+            "filename": "jocker.log",
             "maxBytes": "5000000",
             "backupCount": "20"
         },

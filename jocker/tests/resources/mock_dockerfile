@@ -1,5 +1,7 @@
 FROM {{ image.repository }}:{{ image.tag }}
 MAINTAINER {{ maintainer.name }}, {{ maintainer.email }}
 
+RUN echo "updating local cache"
 RUN apt-get update
+RUN echo "installing stuff"
 RUN apt-get install -y {% for dep in dependencies %}{{ dep }} {% endfor %}
