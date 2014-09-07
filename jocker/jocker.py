@@ -7,6 +7,8 @@ import sys
 import datetime
 from jingen.jingen import TemplateHandler
 import docker
+import json
+import re
 
 DEFAULT_BASE_LOGGING_LEVEL = logging.INFO
 DEFAULT_VERBOSE_LOGGING_LEVEL = logging.DEBUG
@@ -139,15 +141,29 @@ def run(varsfile=None, dockerfile=None, output_file=None, build=False,
         return
     if build:
         c = docker.Client(base_url='unix://var/run/docker.sock',
-                          version='1.12', timeout=10)
+                          version='1.14', timeout=10)
         build_file = os.path.dirname(os.path.abspath(output_file))
         lgr.debug('building docker image from file: {0}'.format(build_file))
         x = c.build(path=build_file, tag='nir0s/jocker:test', quiet=False,
-                    fileobj=None, nocache=False, rm=False, stream=True,
+                    fileobj=None, nocache=False, rm=True, stream=False,
                     timeout=None, custom_context=False, encoding=None)
-        print '*****************'
-        print dir(x)
-        print '*****************'
+        lines = [line for line in x]
+        try:
+            parsed_lines = [json.loads(e).get('stream', '') for e in lines]
+        except ValueError:
+            # sometimes all the data is sent on a single line ????
+            #
+            # ValueError: Extra data: line 1 column 87 - line 1 column
+            # 33268 (char 86 - 33267)
+            line = lines[0]
+            # This ONLY works because every line is formatted as
+            # {"stream": STRING}
+            parsed_lines = [
+                json.loads(obj).get('stream', '') for obj in
+                re.findall('{\s*"stream"\s*:\s*"[^"]*"\s*}', line)
+            ]
+        if 1 == 2:
+            print parsed_lines
 
     # _verify_docker_context(ctx['context'])
     #         client = docker.Client(base_url='unix://var/run/docker.sock',
