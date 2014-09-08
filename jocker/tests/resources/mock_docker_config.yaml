@@ -1,0 +1,14 @@
+# build configuration as specified in https://github.com/docker/docker-py
+# the path and the tag are given by the cli, you shouldn't specify them
+# fileobj and custom_context shouldn't be specified either.
+client:
+    base_url: unix://var/run/docker.sock
+    version: 1.14
+    timeout: 10
+build:
+    quiet: False
+    nocache: False
+    rm: True
+    stream: False
+    timeout: None
+    encoding: None
