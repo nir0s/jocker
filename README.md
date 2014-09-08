@@ -9,7 +9,7 @@ jocker
 
 [![PypI](http://img.shields.io/pypi/v/jocker.svg)](http://img.shields.io/pypi/v/jocker.svg)
 
-`jocker` generates [Dockerfiles](https://docs.docker.com/reference/builder/) (and optionally, Docker images) from [Jinja2](http://jinja.pocoo.org/docs/dev/) based template files.
+`jocker` generates [Dockerfiles](https://docs.docker.com/reference/builder/) from [Jinja2](http://jinja.pocoo.org/docs/dev/) based template files. You can optionally build an image from the generated file and even more optionally, push it to a hub.
 
 ### Requirements
 
