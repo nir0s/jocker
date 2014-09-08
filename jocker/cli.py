@@ -46,7 +46,7 @@ def jocker_run(o):
         o.get('--outputfile'),
         o.get('--build'),
         o.get('--dryrun'),
-        o.get('--dockerconfig')
+        o.get('--dockerconfig'),
         o.get('--verbose')
         )
 
