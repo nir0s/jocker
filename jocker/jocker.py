@@ -229,7 +229,7 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
         for line in parsed_lines:
             jocker_lgr.debug(line)
     if push:
-        jocker_lgr('trying to push {0}/{1}'.format(repository, tag))
+        jocker_lgr.info('pushing {0}:{1}'.format(repository, tag))
         try:
             push_results = c.push(repository, tag=tag, stream=False)
             push_results = return_status_list_from_push_output(push_results)
