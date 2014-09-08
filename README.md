@@ -69,12 +69,13 @@ Note that for this to work you must be logged in to Docker Hub or your private i
 
 Also note that for either of these features to work you MUST be sudo'd as it's a prerequisite of Docker.
 
-Also also note that can't specify both --build and --push as --push triggers a build process anyway.
+Also also note that you can't specify both --build and --push as --push triggers a build process anyway.
 
 #### docker-py configuration for `build` and `push`
 
 A `dockerconfig` yaml file can be specified which includes something like this:
 
+```yaml
 client:
     base_url: 'unix://var/run/docker.sock'
     version: '1.14'
@@ -86,6 +87,7 @@ build:
     stream: false
     timeout:
     encoding:
+```
 
 This is the configuration for the docker client and for the build process as mentioned in https://github.com/docker/docker-py.
 
