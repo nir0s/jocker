@@ -13,6 +13,7 @@ jocker
 
 ### Requirements
 
+- must be run sudo-ically due to Docker's sudo requirement!
 - Python 2.6/2.7
 - [Docker](https://www.docker.com/)
 

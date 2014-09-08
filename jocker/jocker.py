@@ -19,12 +19,12 @@ DEFAULT_VARSFILE = 'varsfile.py'
 DEFAULT_OUTPUTFILE = 'Dockerfile'
 
 DEFAULT_DOCKER_CONFIG = {
-    'default_client_config': {
+    'client': {
         'base_url': 'unix://var/run/docker.sock',
         'version': '1.14',
         'timeout': 10
     },
-    'default_build_config': {
+    'build': {
         'quiet': False,
         'fileobj': None,
         'nocache': False,
@@ -146,9 +146,9 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
     docker_config = import_config(configfile) if configfile \
         else DEFAULT_DOCKER_CONFIG
     client_config = docker_config.get(
-        'client', docker_config['default_client_config'])
+        'client', DEFAULT_DOCKER_CONFIG['client'])
     build_config = docker_config.get(
-        'build', docker_config['default_build_config'])
+        'build', DEFAULT_DOCKER_CONFIG['build'])
 
     templates_dir = os.path.dirname(templatefile)
     template_file = os.path.basename(templatefile)
@@ -176,11 +176,14 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
                 output))
         return
     if build:
+        jocker_lgr.debug('Docker client config is: {0}'.format(client_config))
         c = docker.Client(**client_config)
         build_file = os.path.dirname(os.path.abspath(outputfile))
         jocker_lgr.info('building image')
         jocker_lgr.debug('building docker image from file: {0}'.format(
-            build_file))
+            os.path.join(build_file, outputfile)))
+        jocker_lgr.debug('Creating Image: {0}'.format(build))
+        jocker_lgr.debug('Docker build config is: {0}'.format(build_config))
         x = c.build(path=build_file, tag=build, **build_config)
         # parse output. Um.. this makes 'build' work.. err.. wtf?
         jocker_lgr.info('waiting for build process to finish, please hold...')
