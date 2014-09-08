@@ -16,66 +16,22 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-BASE_UBUNTU_BOX_NAME = 'precise64'
-BASE_UBUNTU_BOX_URI = 'http://files.vagrantup.com/precise64.box'
+CONTAINER_REPO = ENV['CONTAINER_REPO']
 
-VIRTUALENV = 'feeder'
+BASE_BOX_NAME = 'ubuntu/trusty64'
 
 Vagrant.configure('2') do |config|
 
-  config.vm.define :feeder do |feeder|
-
-    feeder_ip = '10.0.1.2'
-
-    feeder.vm.provider :virtualbox do |vb|
+  config.vm.define :jocker_vbox do |jocker_vbox|
+    jocker_vbox.vm.provider :virtualbox do |vb|
       vb.customize ['modifyvm', :id, '--memory', '1024']
-      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     end
-    feeder.vm.box = BASE_UBUNTU_BOX_NAME
-    feeder.vm.box_url = BASE_UBUNTU_BOX_URI
-    feeder.vm.network :private_network, ip: feeder_ip
-    feeder.vm.hostname = 'feeder'
-
-    command = """
-      echo bootstrapping...
-
-      # update
-      echo updating db
-      sudo apt-get -y update &&
-
-      # install prereqs
-      echo installing prerequisites
-      sudo apt-get install -y python-setuptools python-dev vim
-      sudo apt-get purge pip
-      sudo easy_install -U pip
-      sudo wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python
-
-      # go home
-      cd ~
-
-      # virtualenv
-      echo installing virtualenv
-      sudo pip install virtualenv==1.11.4
-      sudo pip install virtualenvwrapper
-      # echo 'source /usr/local/bin/virtualenvwrapper.sh' >> /home/vagrant/.bashrc
-      # source /usr/local/bin/virtualenvwrapper.sh
-      echo creating #{VIRTUALENV} virtualenv
-      # mkvirtualenv feeder
-      # workon feeder
-      virtualenv #{VIRTUALENV}
-      source #{VIRTUALENV}/bin/activate
-
-      # install feeder
-      echo installing feeder
-      pip install feeder
-
-      echo bootstrap done.
-      """
-    feeder.vm.provision :shell do |sh|
-      sh.privileged = false
-      sh.inline = command
+    jocker_vbox.vm.box = BASE_BOX_NAME
+    jocker_vbox.vm.hostname = 'jocker-vbox'
+    jocker_vbox.vm.synced_folder "../", "/jocker", create: true
+    jocker_vbox.vm.provision "shell" do |s|
+      s.path = "provision.sh"
+      s.privileged = false
     end
-
   end
-
 end

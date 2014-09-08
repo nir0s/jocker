@@ -91,6 +91,10 @@ build:
 
 This is the configuration for the docker client and for the build process as mentioned in https://github.com/docker/docker-py.
 
+### Vagrant
+
+The Vagrantfile supplied (which I haven't finished yet.. will let you know once it's ready) will loadz a vbox machine, install docker and jocker on it, generate a docker image from a template and run a container based on the image in a daemonized mode to demonstrate the KRAZIE RAW POWER of jocker (and docker.. I guess *wink*)
+
 ### Contributing
 
 Please do.
