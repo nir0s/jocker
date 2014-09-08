@@ -1,0 +1,51 @@
+        # {u'status': u'The push refers to a repository [nir0ss/cloudify-test] (len: 1)'}
+        # {u'status': u'Sending image list'}
+        # {u'errorDetail': {u'message': u'Error: Status 403 trying to push repository nir0ss/cloudify-test: "Access Denied: Not allowed to create Repo at given location"'}, u'error': u'Error: Status 403 trying to push repository nir0ss/cloudify-test: "Access Denied: Not allowed to create Repo at given location"'}
+
+        # {"status":"The push refers to a repository [nir0s/cloudify-test] (len: 1)"}
+        # {"status":"Sending image list"}
+        # {"errorDetail":{"message":"Error: Status 401 trying to push repository nir0s/cloudify-test: \"\""},"error":"Error: Status 401 trying to push repository nir0s/cloudify-test: \"\""}
+
+        # {"status":"The push refers to a repository [nir0s/woo] (len: 1)"}
+        # {"status":"Sending image list"}
+        # {"status":"Pushing repository nir0s/woo (1 tags)"}
+        # {"status":"Pushing","progressDetail":{},"id":"511136ea3c5a"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"511136ea3c5a"}
+        # {"status":"Pushing","progressDetail":{},"id":"1c9383292a8f"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"1c9383292a8f"}
+        # {"status":"Pushing","progressDetail":{},"id":"9942dd43ff21"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"9942dd43ff21"}
+        # {"status":"Pushing","progressDetail":{},"id":"d92c3c92fa73"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"d92c3c92fa73"}
+        # {"status":"Pushing","progressDetail":{},"id":"0ea0d582fd90"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"0ea0d582fd90"}
+        # {"status":"Pushing","progressDetail":{},"id":"cc58e55aa5a5"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"cc58e55aa5a5"}
+        # {"status":"Pushing","progressDetail":{},"id":"c4ff7513909d"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"c4ff7513909d"}
+        # {"status":"Pushing","progressDetail":{},"id":"24f148280323"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"24f148280323"}
+        # {"status":"Pushing","progressDetail":{},"id":"021ab847241c"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"021ab847241c"}
+        # {"status":"Pushing","progressDetail":{},"id":"771f10115f15"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"771f10115f15"}
+        # {"status":"Pushing","progressDetail":{},"id":"7be9e16aabc1"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"7be9e16aabc1"}
+        # {"status":"Pushing","progressDetail":{},"id":"69d711ea4ab4"}
+        # {"status":"Image already pushed, skipping","progressDetail":{},"id":"69d711ea4ab4"}
+        # {"status":"Pushing tag for rev [69d711ea4ab4] on {https://cdn-registry-1.docker.io/v1/repositories/nir0s/woo/tags/tag}"}
+
+        # Traceback (most recent call last):
+        # File "/home/nir0s/.virtualenvs/jocker/bin/jocker", line 9, in <module>
+        # load_entry_point('jocker==0.0.3', 'console_scripts', 'jocker')()
+        # File "build/bdist.linux-x86_64/egg/jocker/cli.py", line 67, in main
+        # File "build/bdist.linux-x86_64/egg/jocker/cli.py", line 63, in jocker
+        # File "build/bdist.linux-x86_64/egg/jocker/cli.py", line 53, in jocker_run
+        # File "build/bdist.linux-x86_64/egg/jocker/jocker.py", line 209, in run
+        # File "/home/nir0s/.virtualenvs/jocker/local/lib/python2.7/site-packages/docker_py-0.5.0-py2.7.egg/docker/client.py", line 785, in push
+        # or self._result(response)
+        # File "/home/nir0s/.virtualenvs/jocker/local/lib/python2.7/site-packages/docker_py-0.5.0-py2.7.egg/docker/client.py", line 92, in _result
+        # self._raise_for_status(response)
+        # File "/home/nir0s/.virtualenvs/jocker/local/lib/python2.7/site-packages/docker_py-0.5.0-py2.7.egg/docker/client.py", line 88, in _raise_for_status
+        # raise errors.APIError(e, response, explanation=explanation)
+        # docker.errors.APIError: 500 Server Error: Internal Server Error ("push nir0s/cloudify-test is already in progress")

@@ -2,7 +2,8 @@
 """Script to run Jokcer via command line
 
 Usage:
-    jocker [--varsfile=<path> --templatefile=<path> --outputfile=<path> --dockerconfig=<path> --build=<string> --dryrun -v]
+    jocker [--varsfile=<path> --templatefile=<path> --outputfile=<path> --dockerconfig=<path> --dryrun -v]
+           [--build=<string>|--push=<string>]
     jocker --version
 
 Options:
@@ -11,8 +12,9 @@ Options:
     -t --templatefile=<path>    Path to Dockerfile template
     -o --outputfile=<path>      Path to output Dockerfile (if omitted, will assume "Dockerfile")
     -c --dockerconfig=<path>    Path to yaml file containing docker-py configuration
-    -b --build=<string>         Image Repository and Tag to build
     -d --dryrun                 Whether to actually generate.. or just dryrun
+    -b --build=<string>         Image Repository and Tag to build
+    -p --push=<string>          Image Repository and Tag to push to (will target build)
     -v --verbose                a LOT of output (Note: should be used carefully..)
     --version                   Display current version of jocker and exit
 
@@ -44,9 +46,10 @@ def jocker_run(o):
         o.get('--varsfile'),
         o.get('--templatefile'),
         o.get('--outputfile'),
-        o.get('--build'),
-        o.get('--dryrun'),
         o.get('--dockerconfig'),
+        o.get('--dryrun'),
+        o.get('--build'),
+        o.get('--push'),
         o.get('--verbose')
         )
 

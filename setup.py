@@ -57,7 +57,7 @@ setup(
         "docopt==.0.6.1",
         "infi.docopt_completion==0.2.1",
         "jingen==0.0.4",
-        "docker-py==0.4.0",
+        "docker-py==0.5.0",
         "pyyaml==3.10",
     ],
     tests_require=['nose', 'tox'],

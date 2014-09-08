@@ -14,7 +14,7 @@ jocker
 ### Requirements
 
 - must be run sudo-ically due to Docker's sudo requirement!
-- Python 2.6/2.7
+- Python 2.6/2.7 (errr... NO TESTS YET? what a n00b!)
 - [Docker](https://www.docker.com/)
 
 ### Installation
@@ -23,15 +23,19 @@ jocker
 pip install jocker
 ```
 
+### Testing
+
+Disclaimer in broken english: This like 5 hours project. Tests yet, No. Hold as test being wroten. Yes.
+
 ### Usage
 
 ```shell
 jocker -h
-
-Script to run Jokcer via command line
+Script to run jokcer via command line
 
 Usage:
-    jocker [--varsfile=<path> --templatefile=<path> --outputfile=<path> --build --dryrun -v]
+    jocker [--varsfile=<path> --templatefile=<path> --outputfile=<path> --dockerconfig=<path> --dryrun -v]
+           [--build=<string>|--push=<string>]
     jocker --version
 
 Options:
@@ -39,10 +43,52 @@ Options:
     -f --varsfile=<path>        Path to varsfile (if omitted, will assume "vars.py")
     -t --templatefile=<path>    Path to Dockerfile template
     -o --outputfile=<path>      Path to output Dockerfile (if omitted, will assume "Dockerfile")
-    -b --build                  Whether to build an image from the generated file or not
+    -c --dockerconfig=<path>    Path to yaml file containing docker-py configuration
     -d --dryrun                 Whether to actually generate.. or just dryrun
+    -b --build=<string>         Image Repository and Tag to build
+    -p --push=<string>          Image Repository and Tag to push to (will target --build)
     -v --verbose                a LOT of output (Note: should be used carefully..)
     --version                   Display current version of jocker and exit
 ```
 
-More info soon...
+### Generating
+
+- A `varsfile` containing a dict named `VARS` should be supplied (if omitted, will default to vars.py).
+- A `templatefile` should Jinja2-ly correspond with the variables in the aforementioned `VARS` dict (if omitted, will default to Dockerfile.template)
+- An `outputfile` should be given (if omitted, will default to `Dockerfile`)
+
+### Dryrun
+
+If Dryrun is specified, the output of the generated template will be printed. No file will be created.
+
+### Build and Push
+
+You can let jocker know that after the Dockerfile was generated, you'd like to either `Build` a Docker image and optionally Push it to your chosen repository.
+
+Note that for this to work you must be logged in to Docker Hub or your private images repo from your shell.
+
+Also note that for either of these features to work you MUST be sudo'd as it's a prerequisite of Docker.
+
+Also also note that can't specify both --build and --push as --push triggers a build process anyway.
+
+#### docker-py configuration for `build` and `push`
+
+A `dockerconfig` yaml file can be specified which includes something like this:
+
+client:
+    base_url: 'unix://var/run/docker.sock'
+    version: '1.14'
+    timeout: 10
+build:
+    quiet: false
+    nocache: false
+    rm: false
+    stream: false
+    timeout:
+    encoding:
+
+This is the configuration for the docker client and for the build process as mentioned in https://github.com/docker/docker-py.
+
+### Contributing
+
+Please do.
