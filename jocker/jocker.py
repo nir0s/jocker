@@ -195,7 +195,11 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
                 output))
         return
     if build or push:
-        repository, tag = build.split(':') if build else push.split(':')
+        try:
+            repository, tag = build.split(':') if build else push.split(':')
+        except ValueError:
+            repository = build if build else push
+            tag = None
         jocker_lgr.debug('Docker client config is: {0}'.format(client_config))
         c = docker.Client(**client_config)
         build_file = os.path.dirname(os.path.abspath(outputfile))
@@ -225,6 +229,7 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
         for line in parsed_lines:
             jocker_lgr.debug(line)
     if push:
+        jocker_lgr('trying to push {0}/{1}'.format(repository, tag))
         try:
             push_results = c.push(repository, tag=tag, stream=False)
             push_results = return_status_list_from_push_output(push_results)
