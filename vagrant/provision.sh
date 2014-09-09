@@ -22,6 +22,8 @@ curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo
 sudo pip install jocker
 
 # RUN JOCKER HERE
+sudo mkdir -p /generated
+sudo jocker -f /vagrant/vars.py -t /vagrant/Dockerfile.template -o /generated/Dockerfile -v -p nir0ss/cloudify-test:tag -b niros
 
 # run container
 sudo docker run -d --name jocker-demo jocker/demo:latest /bin/bash

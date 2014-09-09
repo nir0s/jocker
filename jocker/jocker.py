@@ -14,8 +14,8 @@ import socket
 DEFAULT_BASE_LOGGING_LEVEL = logging.INFO
 DEFAULT_VERBOSE_LOGGING_LEVEL = logging.DEBUG
 
-DEFAULT_CONFIG_FILE = os.path.expanduser("~/.jocker/config.yml")
-DEFAULT_DOCKERFILE = "Dockerfile.template"
+DEFAULT_CONFIG_FILE = os.path.expanduser('~/.jocker/config.yml')
+DEFAULT_DOCKERFILE = 'Dockerfile.template'
 DEFAULT_VARSFILE = 'varsfile.py'
 DEFAULT_OUTPUTFILE = 'Dockerfile'
 
@@ -100,7 +100,7 @@ def _set_global_verbosity_level(is_verbose_output=False):
     # print 'level is: ' + str(jocker_lgr.getEffectiveLevel())
 
 
-def import_config(config_file):
+def _import_config(config_file):
     """returns a configuration object
 
     :param string config_file: path to config file
@@ -138,78 +138,123 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
     :param string varsfile: path to file with variables.
     :param string templatefile: path to template file to use.
     :param string outputfile: path to output Dockerfile.
-    :param build: False or the image:tag to build to.
-    :param bool dryrun: mock run.
     :param string configfile: path to yaml file with docker-py config.
+    :param bool dryrun: mock run.
+    :param build: False or the image:tag to build to.
+    :param push: False or the image:tag to build to. (triggers build)
     :param bool verbose: verbose output.
     """
+    if dryrun and (build or push):
+        jocker_lgr.error('dryrun requested, cannot build.')
+        sys.exit(100)
 
-    def return_status_list_from_push_output(string):
+    j = Jocker(varsfile, templatefile, outputfile, configfile, dryrun,
+               build, push, verbose)
+    formatted_text = j.generate_dockerfile()
+    if dryrun:
+        return j.handle_dryrun(formatted_text)
+    if build or push:
+        j.handle_build()
+    if push:
+        j.handle_push()
+    jocker_lgr.info('Done')
+
+
+class Jocker():
+
+    def __init__(self, varsfile=DEFAULT_VARSFILE,
+                 templatefile=DEFAULT_DOCKERFILE,
+                 outputfile=DEFAULT_OUTPUTFILE, configfile=None,
+                 dryrun=False, build=False, push=False, verbose=False):
+        self.varsfile = varsfile
+        self.templatefile = templatefile
+        self.outputfile = outputfile
+        self.configfile = configfile
+        self.dryrun = dryrun
+        self.build = build
+        self.push = push
+        self.verbose = verbose
+
+        docker_config = _import_config(configfile) if configfile \
+            else DEFAULT_DOCKER_CONFIG
+        self.client_config = docker_config.get(
+            'client', DEFAULT_DOCKER_CONFIG['client'])
+        self.build_config = docker_config.get(
+            'build', DEFAULT_DOCKER_CONFIG['build'])
+
+        self.templates_dir = os.path.dirname(templatefile)
+        self.template_file = os.path.basename(templatefile)
+
+    def _parse_dumb_push_output(self, string):
+        """since the push process outputs a single unicode string consisting of
+        multiple JSON formatted "status" lines, we need to parse it so that it
+        can be read as multiple strings.
+
+        This will receive the string as an input, count curly braces and ignore
+        any newlines. When the curly braces stack is 0, it will append the
+        entire string it has read up until then to a list and so forth.
+
+        :param string: the string to parse
+        :rtype: list of JSON's
+        """
         stack = 0
-        strings_list = []
-        tmp_string = ''
+        json_list = []
+        tmp_json = ''
         for char in string:
-            if not char == '\r' and \
-                    not char == '\n':
-                tmp_string += char
+            if not char == '\r' and not char == '\n':
+                tmp_json += char
             if char == '{':
                 stack += 1
-            if char == '}':
+            elif char == '}':
                 stack -= 1
             if stack == 0:
-                if not len(tmp_string) == 0:
-                    strings_list.append(tmp_string)
-                tmp_string = ''
-        return strings_list
+                if not len(tmp_json) == 0:
+                    json_list.append(tmp_json)
+                tmp_json = ''
+        return json_list
 
-    docker_config = import_config(configfile) if configfile \
-        else DEFAULT_DOCKER_CONFIG
-    client_config = docker_config.get(
-        'client', DEFAULT_DOCKER_CONFIG['client'])
-    build_config = docker_config.get(
-        'build', DEFAULT_DOCKER_CONFIG['build'])
+    def generate_dockerfile(self):
 
-    templates_dir = os.path.dirname(templatefile)
-    template_file = os.path.basename(templatefile)
+        jocker_lgr.debug('template_file: {0}'.format(self.template_file))
+        jocker_lgr.debug('vars_source: {0}'.format(self.varsfile))
+        jocker_lgr.debug('outputfile: {0}'.format(self.outputfile))
+        jocker_lgr.debug('templates_dir: {0}'.format(self.templates_dir))
 
-    jocker_lgr.debug('template_file: {0}'.format(template_file))
-    jocker_lgr.debug('vars_source: {0}'.format(varsfile))
-    jocker_lgr.debug('outputfile: {0}'.format(outputfile))
-    jocker_lgr.debug('templates_dir: {0}'.format(templates_dir))
+        i = Jingen(
+            template_file=self.template_file,
+            vars_source=self.varsfile,
+            output_file=self.outputfile,
+            templates_dir=self.templates_dir,
+            make_file=not self.dryrun,
+            verbose=self.verbose)
+        return i.generate()
 
-    i = Jingen(
-        template_file=template_file,
-        vars_source=varsfile,
-        output_file=outputfile,
-        templates_dir=templates_dir,
-        make_file=not dryrun,
-        verbose=verbose)
-    output = i.generate()
-
-    if dryrun and build:
-        jocker_lgr.error('dryrun requested, cannot build.')
-        raise JockerError('dryrun requested, cannot build')
-    if dryrun:
+    def handle_dryrun(self, text):
         jocker_lgr.info(
             'Dryrun requested, potential Dockerfile Output is: \n{0}'.format(
-                output))
-        return
-    if build or push:
+                text))
+
+    def handle_build(self):
         try:
-            repository, tag = build.split(':') if build else push.split(':')
+            self.repository, self.tag = self.build.split(':') if self.build \
+                else self.push.split(':')
         except ValueError:
-            repository = build if build else push
-            tag = None
-        jocker_lgr.debug('Docker client config is: {0}'.format(client_config))
-        c = docker.Client(**client_config)
-        build_file = os.path.dirname(os.path.abspath(outputfile))
-        jocker_lgr.info('building image')
+            self.repository = self.build if self.build else self.push
+            self.tag = None
+        jocker_lgr.debug('Initializing docker client with config: {0}'.format(
+            self.client_config))
+        self.c = docker.Client(**self.client_config)
+        build_path = os.path.dirname(os.path.abspath(self.outputfile))
+        jocker_lgr.info('Creating Image: {0}:{1}'.format(
+            self.repository, self.tag))
         jocker_lgr.debug('building docker image from file: {0}'.format(
-            os.path.join(build_file, outputfile)))
-        jocker_lgr.debug('Creating Image: {0}'.format(build))
-        jocker_lgr.debug('Docker build config is: {0}'.format(build_config))
-        x = c.build(path=build_file, tag=build or push, **build_config)
-        # parse output. Um.. this makes 'build' work.. err.. wtf?
+            os.path.join(build_path, self.outputfile)))
+        jocker_lgr.debug('Docker build config is: {0}'.format(
+            self.build_config))
+        x = self.c.build(
+            path=build_path, tag=self.build or self.push, **self.build_config)
+
+        # parse output. Um.. this parser makes 'build' work.. err.. wtf?
         jocker_lgr.info('waiting for build process to finish, please hold...')
         lines = [line for line in x]
         try:
@@ -220,7 +265,7 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
             # ValueError: Extra data: line 1 column 87 - line 1 column
             # 33268 (char 86 - 33267)
             line = lines[0]
-            # This ONLY works because every ligne is formatted as
+            # This ONLY works because every line is formatted as
             # {"stream": STRING}
             parsed_lines = [
                 json.loads(obj).get('stream', '') for obj in
@@ -228,11 +273,12 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
             ]
         for line in parsed_lines:
             jocker_lgr.debug(line)
-    if push:
-        jocker_lgr.info('pushing {0}:{1}'.format(repository, tag))
+
+    def handle_push(self):
+        jocker_lgr.info('pushing {0}:{1}'.format(self.repository, self.tag))
         try:
-            push_results = c.push(repository, tag=tag, stream=False)
-            push_results = return_status_list_from_push_output(push_results)
+            push_results = self._parse_dumb_push_output(
+                self.c.push(self.repository, tag=self.tag, stream=False))
         except docker.errors.APIError as e:
             jocker_lgr.error(e)
             sys.exit(500)
@@ -241,8 +287,7 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
             sys.exit(408)
         for line in push_results:
             jocker_lgr.debug(json.loads(line))
-        # TODO: handle additional error - see errorslog file
-    jocker_lgr.info('Done')
+        # TODO: handle additional errors - see errorslog file
 
 
 class JockerError(Exception):

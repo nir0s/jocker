@@ -1,5 +1,6 @@
 # flake8: NOQA
-"""Script to run Jokcer via command line
+
+"""Script to run Jocker via command line
 
 Usage:
     jocker [--varsfile=<path> --templatefile=<path> --outputfile=<path> --dockerconfig=<path> --dryrun -v]
@@ -17,7 +18,6 @@ Options:
     -p --push=<string>          Image Repository and Tag to push to (will target build)
     -v --verbose                a LOT of output (Note: should be used carefully..)
     --version                   Display current version of jocker and exit
-
 """
 
 from __future__ import absolute_import
