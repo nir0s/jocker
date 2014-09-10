@@ -1,7 +1,5 @@
-
-import jocker_config
+import logger
 import logging
-import logging.config
 import os
 import sys
 from jingen.jingen import Jingen
@@ -11,11 +9,9 @@ import re
 import yaml
 import socket
 
-DEFAULT_BASE_LOGGING_LEVEL = logging.INFO
-DEFAULT_VERBOSE_LOGGING_LEVEL = logging.DEBUG
 
 DEFAULT_CONFIG_FILE = os.path.expanduser('~/.jocker/config.yml')
-DEFAULT_DOCKERFILE = 'Dockerfile.template'
+DEFAULT_TEMPLATEFILE = 'Dockerfile.template'
 DEFAULT_VARSFILE = 'varsfile.py'
 DEFAULT_OUTPUTFILE = 'Dockerfile'
 
@@ -37,52 +33,8 @@ DEFAULT_DOCKER_CONFIG = {
     }
 }
 
-
-def init_jocker_logger(base_level=DEFAULT_BASE_LOGGING_LEVEL,
-                       verbose_level=DEFAULT_VERBOSE_LOGGING_LEVEL,
-                       logging_config=None):
-    """initializes a base logger
-
-    you can use this to init a logger in any of your files.
-    this will use config.py's LOGGER param and logging.dictConfig to configure
-    the logger for you.
-
-    :param int|logging.LEVEL base_level: desired base logging level
-    :param int|logging.LEVEL verbose_level: desired verbose logging level
-    :param dict logging_dict: dictConfig based configuration.
-     used to override the default configuration from config.py
-    :rtype: `python logger`
-    """
-    if logging_config is None:
-        logging_config = {}
-    logging_config = logging_config or jocker_config.LOGGER
-    # TODO: (IMPRV) only perform file related actions if file handler is
-    # TODO: (IMPRV) defined.
-
-    log_dir = os.path.expanduser(
-        os.path.dirname(
-            jocker_config.LOGGER['handlers']['file']['filename']))
-    if os.path.isfile(log_dir):
-        sys.exit('file {0} exists - log directory cannot be created '
-                 'there. please remove the file and try again.'
-                 .format(log_dir))
-    try:
-        logfile = jocker_config.LOGGER['handlers']['file']['filename']
-        d = os.path.expanduser(os.path.dirname(logfile))
-        if not os.path.exists(d) and not len(d) == 0:
-            os.makedirs(d)
-        logging.config.dictConfig(logging_config)
-        jocker_lgr = logging.getLogger('user')
-        # jocker_lgr.setLevel(base_level) if not jocker_config.VERBOSE \
-        jocker_lgr.setLevel(base_level)
-        return jocker_lgr
-    except ValueError as e:
-        sys.exit('could not initialize logger.'
-                 ' verify your logger config'
-                 ' and permissions to write to {0} ({1})'
-                 .format(logfile, e))
-
-jocker_lgr = init_jocker_logger()
+jocker_lgr = logger.init()
+verbose_output = False
 
 
 def _set_global_verbosity_level(is_verbose_output=False):
@@ -125,8 +77,7 @@ def _import_config(config_file):
         raise RuntimeError('bad config file')
 
 
-def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
-        outputfile=DEFAULT_OUTPUTFILE, configfile=None,
+def run(varsfile, templatefile, outputfile, configfile=None,
         dryrun=False, build=False, push=False, verbose=False):
     """generates a Dockerfile, builds an image and pushes it to Dockerhub
 
@@ -148,8 +99,9 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
         jocker_lgr.error('dryrun requested, cannot build.')
         sys.exit(100)
 
+    _set_global_verbosity_level(verbose)
     j = Jocker(varsfile, templatefile, outputfile, configfile, dryrun,
-               build, push, verbose)
+               build, push)
     formatted_text = j.generate_dockerfile()
     if dryrun:
         return j.handle_dryrun(formatted_text)
@@ -157,23 +109,20 @@ def run(varsfile=DEFAULT_VARSFILE, templatefile=DEFAULT_DOCKERFILE,
         j.handle_build()
     if push:
         j.handle_push()
-    jocker_lgr.info('Done')
 
 
 class Jocker():
 
-    def __init__(self, varsfile=DEFAULT_VARSFILE,
-                 templatefile=DEFAULT_DOCKERFILE,
-                 outputfile=DEFAULT_OUTPUTFILE, configfile=None,
-                 dryrun=False, build=False, push=False, verbose=False):
-        self.varsfile = varsfile
-        self.templatefile = templatefile
-        self.outputfile = outputfile
+    def __init__(self, varsfile, templatefile, outputfile, configfile=None,
+                 dryrun=False, build=False, push=False):
+        self.varsfile = varsfile if varsfile else DEFAULT_VARSFILE
+        self.templatefile = templatefile if templatefile \
+            else DEFAULT_TEMPLATEFILE
+        self.outputfile = outputfile if outputfile else DEFAULT_OUTPUTFILE
         self.configfile = configfile
         self.dryrun = dryrun
         self.build = build
         self.push = push
-        self.verbose = verbose
 
         docker_config = _import_config(configfile) if configfile \
             else DEFAULT_DOCKER_CONFIG
@@ -182,8 +131,14 @@ class Jocker():
         self.build_config = docker_config.get(
             'build', DEFAULT_DOCKER_CONFIG['build'])
 
-        self.templates_dir = os.path.dirname(templatefile)
-        self.template_file = os.path.basename(templatefile)
+        if not os.path.exists(self.templatefile):
+            jocker_lgr.error('template file does not exist in {0}'.format(
+                self.templatefile))
+            if verbose_output:
+                raise JockerError('template file missing')
+            sys.exit(508)
+        self.template_dir = os.path.dirname(self.templatefile)
+        self.template_file = os.path.basename(self.templatefile)
 
     def _parse_dumb_push_output(self, string):
         """since the push process outputs a single unicode string consisting of
@@ -215,33 +170,40 @@ class Jocker():
 
     def generate_dockerfile(self):
 
-        jocker_lgr.debug('template_file: {0}'.format(self.template_file))
-        jocker_lgr.debug('vars_source: {0}'.format(self.varsfile))
-        jocker_lgr.debug('outputfile: {0}'.format(self.outputfile))
-        jocker_lgr.debug('templates_dir: {0}'.format(self.templates_dir))
+        if not self.dryrun:
+            jocker_lgr.info('generating Dockerfile: {0}'.format(
+                os.path.abspath(self.outputfile)))
+        jocker_lgr.debug('template file: {0}'.format(self.template_file))
+        jocker_lgr.debug('vars source: {0}'.format(self.varsfile))
+        jocker_lgr.debug('template dir: {0}'.format(self.template_dir))
 
         i = Jingen(
             template_file=self.template_file,
             vars_source=self.varsfile,
             output_file=self.outputfile,
-            templates_dir=self.templates_dir,
-            make_file=not self.dryrun,
-            verbose=self.verbose)
-        return i.generate()
+            template_dir=self.template_dir,
+            make_file=not self.dryrun)
+        formatted_text = i.generate()
+        jocker_lgr.debug('Output content: \n{0}'.format(formatted_text))
+        if not self.dryrun:
+            jocker_lgr.info('Dockerfile generated')
+        return formatted_text
 
     def handle_dryrun(self, text):
         jocker_lgr.info(
-            'Dryrun requested, potential Dockerfile Output is: \n{0}'.format(
+            'dryrun requested, potential Dockerfile content is: \n{0}'.format(
                 text))
 
     def handle_build(self):
         try:
+            # define repository and tag for image
             self.repository, self.tag = self.build.split(':') if self.build \
                 else self.push.split(':')
         except ValueError:
+            # maybe tag wasn't supplied...
             self.repository = self.build if self.build else self.push
             self.tag = None
-        jocker_lgr.debug('Initializing docker client with config: {0}'.format(
+        jocker_lgr.debug('initializing docker client with config: {0}'.format(
             self.client_config))
         self.c = docker.Client(**self.client_config)
         build_path = os.path.dirname(os.path.abspath(self.outputfile))
@@ -251,14 +213,18 @@ class Jocker():
             os.path.join(build_path, self.outputfile)))
         jocker_lgr.debug('Docker build config is: {0}'.format(
             self.build_config))
-        x = self.c.build(
-            path=build_path, tag=self.build or self.push, **self.build_config)
+        try:
+            build_results = self.c.build(
+                path=build_path, tag=self.build or self.push,
+                **self.build_config)
+        except Exception as e:
+            jocker_lgr.error('failed to generate image ({0})'.format(e))
 
         # parse output. Um.. this parser makes 'build' work.. err.. wtf?
         jocker_lgr.info('waiting for build process to finish, please hold...')
-        lines = [line for line in x]
+        lines = [line for line in build_results]
         try:
-            parsed_lines = [json.loads(e).get('stream', '') for e in lines]
+            parsed_lines = [json.loads(i).get('stream', '') for i in lines]
         except ValueError:
             # sometimes all the data is sent in a single line ????
             #
@@ -273,6 +239,8 @@ class Jocker():
             ]
         for line in parsed_lines:
             jocker_lgr.debug(line)
+        # TODO: (IMPRV) verify image exists
+        jocker_lgr.info('image generation complete')
 
     def handle_push(self):
         jocker_lgr.info('pushing {0}:{1}'.format(self.repository, self.tag))
@@ -281,13 +249,18 @@ class Jocker():
                 self.c.push(self.repository, tag=self.tag, stream=False))
         except docker.errors.APIError as e:
             jocker_lgr.error(e)
+            if verbose_output:
+                raise JockerError(e)
             sys.exit(500)
         except socket.timeout as e:
             jocker_lgr.error(e)
+            if verbose_output:
+                raise JockerError(e)
             sys.exit(408)
         for line in push_results:
             jocker_lgr.debug(json.loads(line))
-        # TODO: handle additional errors - see errorslog file
+        jocker_lgr.info('push complete')
+        # TODO: (IMPRV) handle additional errors - see errorslog file
 
 
 class JockerError(Exception):

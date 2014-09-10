@@ -15,28 +15,24 @@
 
 __author__ = 'nir0s'
 
-from jocker.jocker import JockerError
-from jocker.jocker import calculate_throughput
-from jocker.jocker import config_transport
-from jocker.jocker import init_logger
+# from jocker.jocker import JockerError
+from jocker.jocker import _import_config
+from jocker.jocker import init_jocker_logger
 from jocker.jocker import _set_global_verbosity_level
-from jocker.jocker import list_fake_types
-from jocker.jocker import list_transports, list_formatters
-from jocker.jocker import generator
+# from jocker.jocker import Jocker
+from jocker.jocker import JockerError
 
 import unittest
 import os
-import sys
 from testfixtures import log_capture
 import logging
-import re
 
 
 TEST_DIR = '{0}/test_dir'.format(os.path.expanduser("~"))
 TEST_FILE_NAME = 'test_file'
 TEST_FILE = TEST_DIR + '/' + TEST_FILE_NAME
-TEST_RESOURCES_DIR = 'feeder/tests/resources'
-MOCK_CONFIG_FILE = os.path.join(TEST_RESOURCES_DIR, 'mock_config.py')
+TEST_RESOURCES_DIR = 'jocker/tests/resources'
+MOCK_CONFIG_FILE = os.path.join(TEST_RESOURCES_DIR, 'mock_docker_config.py')
 MOCK_TRANSPORT_FILE = os.path.join(TEST_RESOURCES_DIR, 'mock_transport.py')
 BAD_CONFIG_FILE = os.path.join(TEST_RESOURCES_DIR, 'bad_config.py')
 
@@ -45,7 +41,7 @@ class TestBase(unittest.TestCase):
 
     @log_capture()
     def test_set_global_verbosity_level(self, capture):
-        lgr = init_logger(base_level=logging.INFO)
+        lgr = init_jocker_logger(base_level=logging.INFO)
 
         _set_global_verbosity_level(is_verbose_output=False)
         lgr.debug('TEST_LOGGER_OUTPUT')
@@ -58,3 +54,21 @@ class TestBase(unittest.TestCase):
         capture.check(
             ('user', 'INFO', 'TEST_LOGGER_OUTPUT'),
             ('user', 'DEBUG', 'TEST_LOGGER_OUTPUT'))
+
+    def test_import_config_file(self):
+        outcome = _import_config(MOCK_CONFIG_FILE)
+        self.assertEquals(type(outcome), dict)
+        self.assertIn('client', outcome.keys())
+        self.assertIn('build', outcome.keys())
+
+    def test_fail_import_config_file(self):
+        try:
+            _import_config('')
+        except JockerError as ex:
+            self.assertEquals(str(ex), 'missing config file')
+
+    def test_import_bad_config_file(self):
+        try:
+            _import_config(BAD_CONFIG_FILE)
+        except JockerError as ex:
+            self.assertEquals(str(ex), 'bad config file')

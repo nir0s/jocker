@@ -51,6 +51,10 @@ Options:
     --version                   Display current version of jocker and exit
 ```
 
+### Log location
+
+Jocker log files are generated at ~/.jocker/
+
 ### Generating
 
 - A `varsfile` containing a dict named `VARS` should be supplied (if omitted, will default to vars.py).

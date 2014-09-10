@@ -22,11 +22,11 @@ Options:
 
 from __future__ import absolute_import
 from docopt import docopt
-from jocker.jocker import init_jocker_logger
+from jocker.logger import init
 from jocker.jocker import _set_global_verbosity_level
 from jocker.jocker import run
 
-lgr = init_jocker_logger()
+jocker_lgr = init()
 
 
 def ver_check():
@@ -59,7 +59,7 @@ def jocker(test_options=None):
     version = ver_check()
     options = test_options or docopt(__doc__, version=version)
     _set_global_verbosity_level(options.get('--verbose'))
-    lgr.debug(options)
+    jocker_lgr.debug(options)
     jocker_run(options)
 
 
