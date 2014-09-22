@@ -1,6 +1,5 @@
-- jocker/jocker.py:40:    #  TODO: (IMPRV) only perform file related actions if file handler is
-- jocker/jocker.py:41:    #  TODO: (IMPRV) defined.
-- jocker/jocker.py:75:    #  TODO: (IMPRV) only raise exceptions in verbose mode
-- jocker/jocker.py:99:    #  TODO: (IMPRV) remove from path after importing
-- jocker/tests/test_jocker.py:175:    #  TODO: (TEST) test list transports
-- jocker/tests/test_jocker.py:176:    #  TODO: (TEST) test list formatters
+- jocker/logger.py:60:    #  TODO: (IMPRV) only perform file related actions if file handler is
+- jocker/logger.py:61:    #  TODO: (IMPRV) defined.
+- jocker/jocker.py:46:    #  TODO: (IMPRV) only raise exceptions in verbose mode
+- jocker/jocker.py:240:    #  TODO: (IMPRV) verify image exists
+- jocker/jocker.py:261:    #  TODO: (IMPRV) handle additional errors - see errorslog file

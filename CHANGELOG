@@ -1,4 +1,20 @@
-[33mf03d5a5[m[33m ([1;36mHEAD[m[33m, [1;31morigin/master[m[33m, [1;32mmaster[m[33m)[m docs..
+[33m8063f4e[m[33m ([1;36mHEAD[m[33m, [1;31morigin/master[m[33m, [1;32mmaster[m[33m)[m py26 win
+[33m3544fca[m py26 win
+[33m8bff8f5[m testing some other tox config
+[33m382bff4[m added tests and.. polished documentation
+[33m493592a[m lots of logging refactoring
+[33mca874b3[m moved to Jocker class rather than a long, horrible function
+[33m5cf4956[m added rst for pypi publishing
+[33m79d564d[m readme?
+[33ma99839e[m vagrant on the way
+[33m0dcfc1d[m readme
+[33me09a7a5[m syntactic fix
+[33mb7b2ac4[m some late stuff
+[33m49850d0[m added push feature, documentation and jumped to v0.0.5 just for fun
+[33md721a14[m fixed docker config file comprehension
+[33mcaa54d1[m yay
+[33m970d2ea[m too... much .... info.....zzzz
+[33mf03d5a5[m docs..
 [33mbd82ac5[m all fixerz yo
 [33m8676ff3[m ahh.. build successful
 [33me930bd4[m getting there...
