@@ -218,7 +218,7 @@ class Jocker():
                 **self.build_config)
         except Exception as e:
             jocker_lgr.error('failed to generate image ({0})'.format(e))
-
+            sys.exit(101)
         # parse output. Um.. this parser makes 'build' work.. err.. wtf?
         jocker_lgr.info('waiting for build process to finish, please hold...')
         lines = [line for line in build_results]

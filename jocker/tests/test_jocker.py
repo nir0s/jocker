@@ -15,7 +15,6 @@
 
 __author__ = 'nir0s'
 
-# from jocker.jocker import JockerError
 from jocker.jocker import _import_config
 from jocker.logger import init
 from jocker.jocker import _set_global_verbosity_level
@@ -65,8 +64,8 @@ class TestBase(unittest.TestCase):
     def test_import_config_file(self):
         outcome = _import_config(MOCK_CONFIG_FILE)
         self.assertEquals(type(outcome), dict)
-        self.assertIn('client', outcome.keys())
-        self.assertIn('build', outcome.keys())
+        self.assertTrue('client' in outcome.keys())
+        self.assertTrue('build' in outcome.keys())
 
     def test_fail_import_config_file(self):
         try:
@@ -78,24 +77,24 @@ class TestBase(unittest.TestCase):
         try:
             _import_config(BAD_CONFIG_FILE)
         except Exception as ex:
-            self.assertIn('mapping values are not allowed here', str(ex))
+            self.assertTrue('mapping values are not allowed here' in str(ex))
 
     def test_import_bad_config_file(self):
         try:
             _import_config(BAD_CONFIG_FILE)
         except Exception as ex:
-            self.assertIn('mapping values are not allowed here', str(ex))
+            self.assertTrue('mapping values are not allowed here' in str(ex))
 
     def test_generate_dockerfile(self):
         execute(MOCK_VARS_FILE, MOCK_DOCKER_FILE, TEST_OUTPUT_FILE)
         with open(TEST_OUTPUT_FILE, 'r') as f:
-            self.assertIn('git make curl', f.read())
+            self.assertTrue('git make curl' in f.read())
         os.remove(TEST_OUTPUT_FILE)
 
     def test_dryrun(self):
         output = execute(MOCK_VARS_FILE, MOCK_DOCKER_FILE,
                          TEST_OUTPUT_FILE, dryrun=True)
-        self.assertIn('git make curl', output)
+        self.assertTrue('git make curl' in output)
         if os.path.isfile(TEST_OUTPUT_FILE):
             raise RuntimeError('test file created in dryrun...')
 
@@ -103,7 +102,7 @@ class TestBase(unittest.TestCase):
         try:
             execute(MOCK_VARS_FILE, '', verbose=True)
         except JockerError as ex:
-            self.assertIn('template file missing', str(ex))
+            self.assertTrue('template file missing' in str(ex))
 
     def test_dumb_json_output_parser(self):
         j = Jocker(MOCK_VARS_FILE, MOCK_DOCKER_FILE)
@@ -111,8 +110,20 @@ class TestBase(unittest.TestCase):
         try:
             json.loads(TEST_JSON_STRING)
         except ValueError as ex:
-            self.assertIn('Extra data', str(ex))
+            self.assertTrue('Extra data' in str(ex))
         output = j._parse_dumb_push_output(TEST_JSON_STRING)
         # only now test that it's been converted
         for json_obj in output:
             json.loads(json_obj)
+
+    def test_build_push_or_dryrun(self):
+        try:
+            execute(MOCK_VARS_FILE, MOCK_DOCKER_FILE,
+                    build=True, dryrun=True)
+        except SystemExit as ex:
+            self.assertEquals(str(ex), str(100))
+        try:
+            execute(MOCK_VARS_FILE, MOCK_DOCKER_FILE,
+                    push=True, dryrun=True)
+        except SystemExit as ex:
+            self.assertEquals(str(ex), str(100))
