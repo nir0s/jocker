@@ -72,7 +72,7 @@ def _import_config(config_file):
         raise JockerError('invalid yaml file')
 
 
-def execute(varsfile, templatefile, outputfile, configfile=None,
+def execute(varsfile, templatefile, outputfile=None, configfile=None,
             dryrun=False, build=False, push=False, verbose=False):
     """generates a Dockerfile, builds an image and pushes it to DockerHub
 
@@ -179,7 +179,8 @@ class Jocker():
             vars_source=self.varsfile,
             output_file=self.outputfile,
             template_dir=self.template_dir,
-            make_file=not self.is_dryrun)
+            make_file=not self.is_dryrun
+        )
         formatted_text = i.generate()
         jocker_lgr.debug('Output content: \n{0}'.format(formatted_text))
         if not self.is_dryrun:

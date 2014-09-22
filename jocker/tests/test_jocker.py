@@ -99,6 +99,12 @@ class TestBase(unittest.TestCase):
         if os.path.isfile(TEST_OUTPUT_FILE):
             raise RuntimeError('test file created in dryrun...')
 
+    def test_missing_template_file(self):
+        try:
+            execute(MOCK_VARS_FILE, '', verbose=True)
+        except JockerError as ex:
+            self.assertIn('template file missing', str(ex))
+
     def test_dumb_json_output_parser(self):
         j = Jocker(MOCK_VARS_FILE, MOCK_DOCKER_FILE)
         # verify that the initial string isn't already json
