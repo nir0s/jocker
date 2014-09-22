@@ -14,7 +14,7 @@ jocker
 ### Requirements
 
 - must be run sudo-ically due to Docker's sudo requirement!
-- Python 2.6/2.7 (errr... NO TESTS YET? what a n00b!)
+- Python 2.6/2.7
 - [Docker](https://www.docker.com/)
 
 ### Installation
@@ -26,6 +26,8 @@ pip install jocker
 ### Testing
 
 Disclaimer in broken english: This like 5 hours project. Tests yet, No. Hold as test being wroten. Yes.
+
+Well.. there are "some" tests.. but they don't test "build" and "push". ANyways...
 
 ### Usage
 
@@ -67,7 +69,7 @@ If Dryrun is specified, the output of the generated template will be printed. No
 
 ### Build and Push
 
-You can let jocker know that after the Dockerfile was generated, you'd like to either `Build` a Docker image and optionally Push it to your chosen repository.
+You can let jocker know that after the Dockerfile was generated, you'd like to `Build` a Docker image and optionally Push it to your chosen repository.
 
 Note that for this to work you must be logged in to Docker Hub or your private images repo from your shell.
 
@@ -94,6 +96,8 @@ build:
 ```
 
 This is the configuration for the docker client and for the build process as mentioned in https://github.com/docker/docker-py.
+
+If no file was specified, some defaults will be assumed.
 
 ### Vagrant
 

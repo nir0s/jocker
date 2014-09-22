@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from docopt import docopt
 from jocker.logger import init
 from jocker.jocker import _set_global_verbosity_level
-from jocker.jocker import run
+from jocker.jocker import execute
 
 jocker_lgr = init()
 
@@ -42,7 +42,7 @@ def ver_check():
 
 
 def jocker_run(o):
-    run(
+    execute(
         o.get('--varsfile'),
         o.get('--templatefile'),
         o.get('--outputfile'),
