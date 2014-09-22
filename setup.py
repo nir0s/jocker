@@ -56,7 +56,7 @@ setup(
     install_requires=[
         "docopt==.0.6.1",
         "infi.docopt_completion==0.2.1",
-        "jingen==0.0.6",
+        "jingen==0.1.0",
         "docker-py==0.5.0",
         "pyyaml==3.10",
     ],
