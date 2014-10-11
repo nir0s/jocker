@@ -66,10 +66,10 @@ def _import_config(config_file):
             return yaml.safe_load(c.read())
     except IOError as ex:
         jocker_lgr.error(str(ex))
-        raise JockerError('cannot access config file')
+        raise RuntimeError('cannot access config file')
     except yaml.parser.ParserError as ex:
         jocker_lgr.error('invalid yaml file: {0}'.format(ex))
-        raise JockerError('invalid yaml file')
+        raise RuntimeError('invalid yaml file')
 
 
 def execute(varsfile, templatefile, outputfile=None, configfile=None,
@@ -101,11 +101,13 @@ def execute(varsfile, templatefile, outputfile=None, configfile=None,
                build, push)
     formatted_text = j.generate()
     if dryrun:
-        return j.dryrun(formatted_text)
+        g = j.dryrun(formatted_text)
     if build or push:
         j.build_image()
     if push:
         j.push_image()
+    if dryrun:
+        return g
 
 
 class Jocker():
@@ -167,13 +169,13 @@ class Jocker():
 
     def generate(self):
 
-        if not self.is_dryrun:
-            jocker_lgr.info('generating Dockerfile: {0}'.format(
-                os.path.abspath(self.outputfile)))
         jocker_lgr.debug('template file: {0}'.format(self.template_file))
         jocker_lgr.debug('vars source: {0}'.format(self.varsfile))
         jocker_lgr.debug('template dir: {0}'.format(self.template_dir))
 
+        if not self.is_dryrun:
+            jocker_lgr.info('generating Dockerfile: {0}'.format(
+                os.path.abspath(self.outputfile)))
         i = Jingen(
             template_file=self.template_file,
             vars_source=self.varsfile,
@@ -182,9 +184,9 @@ class Jocker():
             make_file=not self.is_dryrun
         )
         formatted_text = i.generate()
-        jocker_lgr.debug('Output content: \n{0}'.format(formatted_text))
         if not self.is_dryrun:
             jocker_lgr.info('Dockerfile generated')
+        jocker_lgr.debug('Output content: \n{0}'.format(formatted_text))
         return formatted_text
 
     def dryrun(self, text):
@@ -212,6 +214,9 @@ class Jocker():
             os.path.join(build_path, self.outputfile)))
         jocker_lgr.debug('Docker build config is: {0}'.format(
             self.build_config))
+        if self.is_dryrun:
+            jocker_lgr.debug('dryrun requested, skipping build process.')
+            return
         try:
             build_results = self.c.build(
                 path=build_path, tag=self.build or self.push,
@@ -243,6 +248,9 @@ class Jocker():
 
     def push_image(self):
         jocker_lgr.info('pushing {0}:{1}'.format(self.repository, self.tag))
+        if self.is_dryrun:
+            jocker_lgr.debug('dryrun requested, skipping push process.')
+            return
         try:
             push_results = self._parse_dumb_push_output(
                 self.c.push(self.repository, tag=self.tag, stream=False))
