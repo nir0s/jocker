@@ -69,6 +69,8 @@ If Dryrun is specified, the output of the generated template will be printed. No
 
 ### Build and Push
 
+Note that since, when building, Docker looks for a file named "Dockerfile", the output file must be "Dockerfile" if you want to be able to use the `-b` flag in conjunction with the generation of the Dockerfile from the template.
+
 You can let jocker know that after the Dockerfile was generated, you'd like to `Build` a Docker image and optionally Push it to your chosen repository.
 
 Note that for this to work you must be logged in to Docker Hub or your private images repo from your shell.
